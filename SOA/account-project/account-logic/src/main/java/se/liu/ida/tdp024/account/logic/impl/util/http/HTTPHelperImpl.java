@@ -9,8 +9,9 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import org.springframework.stereotype.Component;
 
-
+@Component
 public class HTTPHelperImpl implements HTTPHelper {
 
     private static final int TIMEOUT_MS = 5000;

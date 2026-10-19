@@ -23,7 +23,135 @@
     <version>2.18.10</version>
 </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>build-bank-service</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>sh</executable>
+                            <arguments>
+                                <argument>-c</argument>
+                                <argument>go build -o ${project.build.directory}/bank-service .</argument>
+                            </arguments>
+                            <workingDirectory>${bank.dir}</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>start-bank-service</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>sh</executable>
+                            <arguments>
+                                <argument>-c</argument>
+                                <argument>${project.build.directory}/bank-service &gt; ${project.build.directory}/bank-service.log 2&gt;&amp;1 &amp; echo $! &gt; ${project.build.directory}/bank-service.pid</argument>
+                            </arguments>
+                            <workingDirectory>${bank.dir}</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>start-person-service</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>sh</executable>
+                            <arguments>
+                                <argument>-c</argument>
+                                <argument>venv/bin/python person.py &gt; ${project.build.directory}/person-service.log 2&gt;&amp;1 &amp; echo $! &gt; ${project.build.directory}/person-service.pid</argument>
+                            </arguments>
+                            <workingDirectory>${person.dir}</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>start-account-rest</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>sh</executable>
+                            <arguments>
+                                <argument>-c</argument>
+                                <argument>java -jar ../account-rest/target/rest-1.0.jar &gt; ${project.build.directory}/account-rest.log 2&gt;&amp;1 &amp; echo $! &gt; ${project.build.directory}/account-rest.pid</argument>
+                            </arguments>
+                            <workingDirectory>${project.basedir}</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>wait-for-services</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>sh</executable>
+                            <arguments>
+                                <argument>-c</argument>
+                                <argument>sleep 10</argument>
+                            </arguments>
+                            <workingDirectory>${project.basedir}</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>stop-services</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>sh</executable>
+                            <arguments>
+                                <argument>-c</argument>
+                                <argument>kill $(cat ${project.build.directory}/bank-service.pid) $(cat ${project.build.directory}/person-service.pid) $(cat ${project.build.directory}/account-rest.pid)</argument>
+                            </arguments>
+                            <workingDirectory>${project.basedir}</workingDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                    </includes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
     <properties>
+        <person.dir>${project.basedir}/../../Person-service</person.dir>
+        <bank.dir>${project.basedir}/../../Bank-service</bank.dir>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>

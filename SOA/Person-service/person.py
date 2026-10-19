@@ -27,7 +27,7 @@ async def root():
 async def list_persons():
     return PERSONS
 
-@app.get("/person/find.name/{name}")
+@app.get("/person/find.name")
 async def find_person(name: str):
     for person in PERSONS:
         if person["name"] == name:
@@ -35,7 +35,7 @@ async def find_person(name: str):
 
     raise HTTPException(status_code=404, detail="Person not found")
 
-@app.get("/person/find.key/{key}")
+@app.get("/person/find.key")
 async def find_person_by_key(key: str):
     for person in PERSONS:
         if person["key"] == key:

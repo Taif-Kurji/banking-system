@@ -41,7 +41,7 @@ func findBank(value string, field func(Bank) string) *Bank {
 
 
 func findBankByName(w http.ResponseWriter, r *http.Request) {
-	name := r.URL.Path[len("/bank/find.name/"):]
+	name := r.URL.Query().Get("name")
 	b := findBank(name, func(b Bank) string { return b.Name })
 	if b != nil {
 		writeJsonResponse(w, b)
@@ -51,7 +51,7 @@ func findBankByName(w http.ResponseWriter, r *http.Request) {
 }
 
 func findBankByKey(w http.ResponseWriter, r *http.Request) {
-	key := r.URL.Path[len("/bank/find.key/"):]
+	key := r.URL.Query().Get("key")
 	b := findBank(key, func(b Bank) string { return b.Key })
 	if b != nil {
 		writeJsonResponse(w, b)
@@ -74,8 +74,8 @@ func main() {
 		w.Write([]byte("Bank service is running"))
 	})
 	mux.HandleFunc("GET /bank/list", listBanks)
-	mux.HandleFunc("GET /bank/find.name/{name}", findBankByName)
-	mux.HandleFunc("GET /bank/find.key/{key}", findBankByKey)
+	mux.HandleFunc("GET /bank/find.name", findBankByName)
+	mux.HandleFunc("GET /bank/find.key", findBankByKey)
 	log.Println("Bank service is running on port 8070...")
     log.Fatal(http.ListenAndServe(":8070", mux))	
 }
