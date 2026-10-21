@@ -24,7 +24,6 @@ public class TransactionLogicFacadeImpl implements TransactionLogicFacade {
     @Override
     public boolean debit(long id, long amount) {
         boolean ok = accountEntityFacade.debitAccount(id, amount);
-        transactionEntityFacade.createTransaction("DEBIT", id, amount, ok ? "OK" : "FAILED");
         publish("DEBIT", id, amount, ok);
         return ok;
 
@@ -33,7 +32,6 @@ public class TransactionLogicFacadeImpl implements TransactionLogicFacade {
     @Override
     public boolean credit(long id, long amount) {
         boolean ok = accountEntityFacade.creditAccount(id, amount);
-        transactionEntityFacade.createTransaction("CREDIT", id, amount, ok ? "OK" : "FAILED");
         publish("CREDIT", id, amount, ok);
         return ok;
     }

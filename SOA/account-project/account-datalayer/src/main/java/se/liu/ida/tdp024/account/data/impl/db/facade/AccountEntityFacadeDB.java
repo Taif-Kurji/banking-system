@@ -1,8 +1,10 @@
 package se.liu.ida.tdp024.account.data.impl.db.facade;
 
 import se.liu.ida.tdp024.account.data.api.entity.Account;
+import se.liu.ida.tdp024.account.data.api.entity.Transaction;
 import se.liu.ida.tdp024.account.data.api.facade.AccountEntityFacade;
 import se.liu.ida.tdp024.account.data.impl.db.entity.AccountDB;
+import se.liu.ida.tdp024.account.data.impl.db.entity.TransactionDB;
 import se.liu.ida.tdp024.account.data.impl.db.util.EMF;
 // import se.liu.ida.tdp024.account.util.logger.AccountLogger;
 // import se.liu.ida.tdp024.account.util.logger.AccountLoggerImpl;
@@ -14,6 +16,7 @@ import jakarta.persistence.LockModeType;
 import jakarta.persistence.TypedQuery;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Date;
 
 
 
@@ -90,40 +93,47 @@ public class AccountEntityFacadeDB implements AccountEntityFacade {
 
     @Override
     public boolean debitAccount(long accountId, long amount) {
-        if (amount < 0) {
-            return false;
-        }
-        return updateHoldings(accountId, -amount);
+        return updateHoldings(accountId, amount, "DEBIT");
     }
 
     @Override
     public boolean creditAccount(long accountId, long amount) {
-        if (amount < 0) {
-            return false;
-        }
-        return updateHoldings(accountId, amount);
+        return updateHoldings(accountId, amount, "CREDIT");
     }
 
-    private Boolean updateHoldings(long id, long amount) {
+    private boolean updateHoldings(long id, long amount, String type) {
         EntityManager em = EMF.getEntityManager();
         try {
             em.getTransaction().begin();
             Account account = em.find(AccountDB.class, id, LockModeType.PESSIMISTIC_WRITE);
-            
+
             if (account == null) {
                 return false;
             }
 
-            long newHoldings = account.getHoldings() + amount;
-
-            if (newHoldings < 0) {
-                return false;
+            long newHoldings;
+            if (type.equals("DEBIT")) {
+                newHoldings = account.getHoldings() - amount;
+            } else {
+                newHoldings = account.getHoldings() + amount;
             }
 
-            account.setHoldingtransactions(newHoldings);
+            boolean ok = amount >= 0 && newHoldings >= 0;
+            if (ok) {
+                account.setHoldingtransactions(newHoldings);
+            }
+
+            Transaction transaction = new TransactionDB();
+            transaction.setType(type);
+            transaction.setAmount(amount);
+            transaction.setCreated(new Date());
+            transaction.setStatus(ok ? "OK" : "FAILED");
+            transaction.setAccount(account);
+            em.persist(transaction);
+
             em.getTransaction().commit();
 
-            return true;
+            return ok;
         } 
         // catch (Exception e) {
             // accountLogger.log(e);
