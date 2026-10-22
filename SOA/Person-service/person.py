@@ -28,11 +28,11 @@ async def log_request(request: Request, call_next):
     return await call_next(request)
 
 PERSONS = [
-    {"key": "ahRtu7874Gdgd345Tlgd39TyurrG7", "name": "Jakob Pogulis"},
-    {"key": "2657TyuhR57575GGhu7", "name": "Xena"},
-    {"key": "3Wytrt5638HUTyPWert", "name": "Marcus Bendtsen"},
-    {"key": "4786NmbVyt67d232hj", "name": "Zorro"},
-    {"key": "5OOpluoRt5612Nhu", "name": "Q"},
+    {"key": "ahRtu7874Gdgd345Tlgd39TyurrG7", "name": "Jakob Pogulis"},  # gitleaks:allow (course mock data, not a secret)
+    {"key": "2657TyuhR57575GGhu7", "name": "Xena"},  # gitleaks:allow (course mock data, not a secret)
+    {"key": "3Wytrt5638HUTyPWert", "name": "Marcus Bendtsen"},  # gitleaks:allow (course mock data, not a secret)
+    {"key": "4786NmbVyt67d232hj", "name": "Zorro"},  # gitleaks:allow (course mock data, not a secret)
+    {"key": "5OOpluoRt5612Nhu", "name": "Q"},  # gitleaks:allow (course mock data, not a secret)
     
     {"key": "1", "name": "Jakob Pogulis"},
     {"key": "2", "name": "Xena"},
