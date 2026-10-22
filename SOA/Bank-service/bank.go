@@ -1,10 +1,29 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
     "log"
     "net/http"
+
+	"github.com/segmentio/kafka-go"
 )
+
+var writer = &kafka.Writer{
+	Addr:                   kafka.TCP("localhost:9092"),
+	Topic:                  "rest-requests",
+	Async:                  true,
+	AllowAutoTopicCreation: true,
+}
+
+func logRequests(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		message := fmt.Sprintf("bank: %s %s?%s", r.Method, r.URL.Path, r.URL.RawQuery)
+		writer.WriteMessages(context.Background(), kafka.Message{Value: []byte(message)})
+		next.ServeHTTP(w, r)
+	})
+}
 
 type Bank struct {
 	Name string `json:"name"`
@@ -77,5 +96,5 @@ func main() {
 	mux.HandleFunc("GET /bank/find.name", findBankByName)
 	mux.HandleFunc("GET /bank/find.key", findBankByKey)
 	log.Println("Bank service is running on port 8070...")
-    log.Fatal(http.ListenAndServe(":8070", mux))	
+    log.Fatal(http.ListenAndServe(":8070", logRequests(mux)))	
 }

@@ -1,7 +1,31 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from kafka import KafkaProducer
 import uvicorn
 
 app = FastAPI()
+producer = None
+
+
+def get_producer():
+    global producer
+    if producer is None:
+        try:
+            producer = KafkaProducer(bootstrap_servers="localhost:9092", max_block_ms=1000)
+        except Exception:
+            producer = None
+    return producer
+
+
+@app.middleware("http")
+async def log_request(request: Request, call_next):
+    kafka_producer = get_producer()
+    if kafka_producer is not None:
+        try:
+            message = f"person: {request.method} {request.url.path}?{request.url.query}"
+            kafka_producer.send("rest-requests", message.encode())
+        except Exception:
+            pass
+    return await call_next(request)
 
 PERSONS = [
     {"key": "ahRtu7874Gdgd345Tlgd39TyurrG7", "name": "Jakob Pogulis"},
